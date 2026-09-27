@@ -2,8 +2,11 @@
   "extends": "@repo/typescript-config/react-library.json",
   "compilerOptions": {
     "outDir": "dist",
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["@testing-library/jest-dom/vitest"]
   },
-  "include": ["src"],
+  "include": ["src", "vitest.setup.ts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
