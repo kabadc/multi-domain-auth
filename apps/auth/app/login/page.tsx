@@ -54,6 +54,15 @@ function LoginForm() {
         <button type="button" onClick={handleLogin} style={{ padding: '10px', background: 'black', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>
           Sign In
         </button>
+        
+        <div style={{ textAlign: 'center', margin: '5px 0', color: '#666' }}>or</div>
+          
+        <button 
+          type="button" 
+          onClick={() => window.location.href = '/api/auth/social/google?redirect=' + encodeURIComponent(redirect)} 
+          style={{ padding: '10px', background: '#4285F4', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}>
+          Sign In with Google (OAuth)
+        </button>
       </form>
     </div>
   );

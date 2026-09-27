@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 
 export default function Site1Page() {
   const [session, setSession] = useState<any>(null);
-  const [email, setEmail] = useState('demo@site1.local');
-  const [password, setPassword] = useState('password123');
 
   useEffect(() => {
     fetch('/api/auth/session').then(res => res.json()).then(data => {
@@ -13,26 +11,23 @@ export default function Site1Page() {
     });
   }, []);
 
-  const login = async (e: React.FormEvent) => {
-    console.log('click');
-    e.preventDefault();
-    console.log('fetch to api', email, password);
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    console.log('fetch to api res', res);
-    if (res.ok) {
-      const data = await res.json();
-      setSession(data.user);
-    } else {
-      alert('Login failed');
-    }
+  const openCentralLogin = () => {
+    const popup = window.open('https://auth.site1.local/sso/popup', 'sso', 'width=500,height=650');
+    
+    const messageHandler = (event: MessageEvent) => {
+      // Listen for ticket OR social login success
+      if (event.data?.type === 'SSO_TICKET' || event.data?.type === 'SOCIAL_LOGIN_SUCCESS') {
+        window.removeEventListener('message', messageHandler);
+        // Refresh local session state
+        fetch('/api/auth/session').then(res => res.json()).then(data => {
+          if (data.authenticated) setSession(data.user);
+        });
+      }
+    };
+    window.addEventListener('message', messageHandler);
   };
 
   const logout = async () => {
-    // In a full implementation, you'd call an API to clear the cookie.
     document.cookie = 'site1_session=; domain=.site1.local; Max-Age=0; path=/';
     setSession(null);
   };
@@ -62,11 +57,11 @@ export default function Site1Page() {
           <button onClick={logout} style={{ padding: '10px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>Logout</button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '300px', gap: '10px', marginTop: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-          <h3>Inline Login</h3>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '10px' }} />
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: '10px' }} />
-          <button type="button" onClick={login} style={{ padding: '10px', background: 'black', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>Sign In</button>
+        <div style={{ marginTop: '20px', padding: '20px', border: '1px dashed #999', borderRadius: '8px', width: '300px' }}>
+          <p style={{ textAlign: 'center' }}>No active session found.</p>
+          <button type="button" onClick={openCentralLogin} style={{ padding: '10px', background: 'black', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px', width: '100%', fontWeight: 'bold' }}>
+            Open Central Login
+          </button>
         </div>
       )}
     </div>

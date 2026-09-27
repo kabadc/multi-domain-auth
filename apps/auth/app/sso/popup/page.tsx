@@ -111,7 +111,16 @@ export default function SSOPopup() {
             type="button" 
             onClick={handleLogin} 
             style={{ padding: '10px', background: 'purple', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}>
-            Sign In & Connect
+            Sign In with Email
+          </button>
+          
+          <div style={{ textAlign: 'center', margin: '10px 0', color: '#666' }}>or</div>
+          
+          <button 
+            type="button" 
+            onClick={() => window.location.href = '/api/auth/social/google'} 
+            style={{ padding: '10px', background: '#4285F4', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}>
+            Sign In with Google (OAuth)
           </button>
         </form>
       </div>
