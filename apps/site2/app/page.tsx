@@ -51,7 +51,7 @@ export default function Site2Page() {
         <div style={{ marginTop: '20px', padding: '20px', border: '1px dashed #999', borderRadius: '8px' }}>
           <p>No active session found on Site 2.</p>
           <button onClick={recoverSession} style={{ padding: '10px', background: 'purple', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>
-            Recover Session Silently
+            Sign In with Auth Provider
           </button>
         </div>
       )}
