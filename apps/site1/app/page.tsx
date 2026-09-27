@@ -28,7 +28,9 @@ export default function Site1Page() {
   };
 
   const logout = async () => {
-    document.cookie = 'site1_session=; domain=.site1.local; Max-Age=0; path=/';
+    // We MUST call the backend to clear the cookie because it is HttpOnly!
+    // Client-side JavaScript cannot delete an HttpOnly cookie.
+    await fetch('/api/auth/logout', { method: 'POST' });
     setSession(null);
   };
 

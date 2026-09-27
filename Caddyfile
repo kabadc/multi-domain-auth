@@ -13,3 +13,7 @@ auth.site1.local {
 site2.local {
     reverse_proxy localhost:3003
 }
+
+site3.local {
+    reverse_proxy localhost:3004
+}

@@ -29,6 +29,7 @@ Map the PoC domains to your local machine. Edit your `/etc/hosts` file (requires
 127.0.0.1 account.site1.local
 127.0.0.1 auth.site1.local
 127.0.0.1 site2.local
+127.0.0.1 site3.local
 ```
 
 ### 3. Start the Next.js Applications
