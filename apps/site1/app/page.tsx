@@ -14,12 +14,15 @@ export default function Site1Page() {
   }, []);
 
   const login = async (e: React.FormEvent) => {
+    console.log('click');
     e.preventDefault();
+    console.log('fetch to api', email, password);
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
+    console.log('fetch to api res', res);
     if (res.ok) {
       const data = await res.json();
       setSession(data.user);
@@ -59,12 +62,12 @@ export default function Site1Page() {
           <button onClick={logout} style={{ padding: '10px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>Logout</button>
         </div>
       ) : (
-        <form onSubmit={login} style={{ display: 'flex', flexDirection: 'column', width: '300px', gap: '10px', marginTop: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '300px', gap: '10px', marginTop: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
           <h3>Inline Login</h3>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '10px' }} />
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: '10px' }} />
-          <button type="submit" style={{ padding: '10px', background: 'black', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>Sign In</button>
-        </form>
+          <button type="button" onClick={login} style={{ padding: '10px', background: 'black', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>Sign In</button>
+        </div>
       )}
     </div>
   );

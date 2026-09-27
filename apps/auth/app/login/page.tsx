@@ -36,7 +36,7 @@ function LoginForm() {
       
       {error && <div style={{ color: 'red', marginBottom: '10px', textAlign: 'center' }}>{error}</div>}
       
-      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <form style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <input 
           type="email" 
           value={email} 
@@ -51,7 +51,7 @@ function LoginForm() {
           placeholder="Password"
           style={{ padding: '10px' }}
         />
-        <button type="submit" style={{ padding: '10px', background: 'black', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>
+        <button type="button" onClick={handleLogin} style={{ padding: '10px', background: 'black', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>
           Sign In
         </button>
       </form>
