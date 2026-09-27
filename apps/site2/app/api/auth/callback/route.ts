@@ -20,16 +20,28 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Exchange failed' }, { status: 401 });
   }
 
-  const { user } = await res.json();
+  const { user, refreshToken } = await res.json();
 
-  // Set local site2 cookie
+  // Set local site2 access cookie (15 SECONDS for PoC testing so you can watch it expire!)
   const cookieStore = await cookies();
   cookieStore.set('site2_session', JSON.stringify(user), {
     path: '/',
-    httpOnly: false, // Set to false so we can read it easily on the client for the PoC
+    httpOnly: false, 
     secure: true,
     sameSite: 'lax',
+    maxAge: 15,
   });
+
+  // Set local site2 refresh cookie (7 DAYS, HttpOnly so JS cannot steal it)
+  if (refreshToken) {
+    cookieStore.set('site2_refresh', refreshToken, {
+      path: '/',
+      httpOnly: true, 
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
+    });
+  }
 
   return NextResponse.redirect('https://site2.local');
 }
