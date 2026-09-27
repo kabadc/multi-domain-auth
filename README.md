@@ -1,159 +1,57 @@
-# Turborepo starter
+# Multi-Domain Auth Proof of Concept (PoC)
 
-This Turborepo starter is maintained by the Turborepo core team.
+This is a proof of concept demonstrating how to share authentication state across multiple domains and subdomains using a central Identity Provider (IdP) in a Turborepo + Next.js architecture.
 
-## Using this example
+## Overview
 
-Run the following command:
+The PoC solves the problem of keeping a user logged in across multiple public-facing websites without relying on full-page redirects.
 
-```sh
-npx create-turbo@latest
+Included Applications:
+- **`apps/auth`** (`auth.site1.local:3000`): The central Identity Provider (IdP) holding the mock database and ticket exchange logic.
+- **`apps/site1`** (`site1.local:3001`): A public-facing site that shares the root domain `.site1.local`.
+- **`apps/account`** (`account.site1.local:3002`): A protected portal that relies on the `.site1.local` cookie.
+- **`apps/site2`** (`site2.local:3003`): A public-facing site on a completely separate domain, demonstrating cross-domain session recovery via SSO tickets and silent popup handshakes.
+
+## Running the PoC
+
+Because modern browsers enforce strict security boundaries on cross-domain cookies (`SameSite=None`), this PoC requires **HTTPS** to function correctly. We use **Caddy** as a local reverse proxy to automatically generate locally trusted SSL certificates.
+
+### 1. Prerequisites
+Install Caddy on your machine:
+- **macOS:** `brew install caddy` (and optionally `brew install nss` for Firefox support)
+- **Windows:** `choco install caddy` or `scoop install caddy`
+- **Linux:** See [Caddy Installation Docs](https://caddyserver.com/docs/install)
+
+### 2. Configure Local Domains (`/etc/hosts`)
+Map the PoC domains to your local machine. Edit your `/etc/hosts` file (requires `sudo`) and add the following lines at the bottom:
+```text
+127.0.0.1 site1.local
+127.0.0.1 account.site1.local
+127.0.0.1 auth.site1.local
+127.0.0.1 site2.local
 ```
 
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+### 3. Start the Next.js Applications
+In the root directory of this repository, install dependencies and start the Turborepo dev server:
+```bash
+pnpm install
+pnpm dev
 ```
+*(This starts the apps on ports 3000, 3001, 3002, and 3003)*
 
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo build
-pnpm exec turbo build
-pnpm exec turbo build
+### 4. Start Caddy (Reverse Proxy)
+Open a **second terminal window** in the root of this repository (where the `Caddyfile` is located) and run:
+```bash
+caddy run
 ```
+*(Note: Your OS may ask for an administrator password the first time to install the local Root CA certificate.)*
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### 5. Test the Architecture
+Open your browser and navigate to:
+- [https://site1.local](https://site1.local) - Log in here using the inline modal.
+- [https://account.site1.local](https://account.site1.local) - Notice you are instantly logged in without redirects.
+- [https://site2.local](https://site2.local) - Test the cross-domain recovery (either via the "Go to Site 2" button on site1, or by clicking "Recover Session Silently" directly on site2).
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## Documentation
 
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+For a detailed explanation of the architecture and sequence diagrams of the ticket exchange flows, please see [docs/cross-domain.md](./docs/cross-domain.md).

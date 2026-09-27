@@ -1,102 +1,71 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+'use client';
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+import { useState, useEffect } from 'react';
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+export default function Site1Page() {
+  const [session, setSession] = useState<any>(null);
+  const [email, setEmail] = useState('demo@site1.local');
+  const [password, setPassword] = useState('password123');
+
+  useEffect(() => {
+    fetch('/api/auth/session').then(res => res.json()).then(data => {
+      if (data.authenticated) setSession(data.user);
+    });
+  }, []);
+
+  const login = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setSession(data.user);
+    } else {
+      alert('Login failed');
+    }
+  };
+
+  const logout = async () => {
+    // In a full implementation, you'd call an API to clear the cookie.
+    document.cookie = 'site1_session=; domain=.site1.local; Max-Age=0; path=/';
+    setSession(null);
+  };
+
+  const ssoToSite2 = async () => {
+    const res = await fetch('/api/auth/ticket', { method: 'POST' });
+    if (res.ok) {
+      const { ticket } = await res.json();
+      window.location.href = `https://site2.local/api/auth/callback?ticket=${ticket}`;
+    }
+  };
 
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+      <h1>Welcome to Site1 (Public)</h1>
+      <p>This is a public site. No redirects happen here.</p>
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
+      {session ? (
+        <div style={{ padding: '20px', border: '1px solid green', marginTop: '20px' }}>
+          <h2>Logged in as {session.name}</h2>
+          <button onClick={ssoToSite2} style={{ padding: '10px', background: 'blue', color: 'white', marginRight: '10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            Go to Site 2 (Cross-Domain Link)
+          </button>
+          <a href="https://account.site1.local" style={{ padding: '10px', background: 'green', color: 'white', textDecoration: 'none', marginRight: '10px', borderRadius: '4px', display: 'inline-block' }}>
+            Go to Account (Same-Domain)
           </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+          <button onClick={logout} style={{ padding: '10px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>Logout</button>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
+      ) : (
+        <form onSubmit={login} style={{ display: 'flex', flexDirection: 'column', width: '300px', gap: '10px', marginTop: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+          <h3>Inline Login</h3>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '10px' }} />
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: '10px' }} />
+          <button type="submit" style={{ padding: '10px', background: 'black', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>Sign In</button>
+        </form>
+      )}
     </div>
   );
 }

@@ -1,102 +1,60 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+'use client';
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+import { useState, useEffect } from 'react';
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+export default function Site2Page() {
+  const [user, setUser] = useState<any>(null);
+  
+  // Quick way to check cookie on client (for PoC)
+  useEffect(() => {
+    const match = document.cookie.match(/(^| )site2_session=([^;]+)/);
+    if (match) {
+      try {
+        setUser(JSON.parse(decodeURIComponent(match[2])));
+      } catch(e) {}
+    }
+  }, []);
+
+  const recoverSession = () => {
+    // Open the silent SSO popup
+    const popup = window.open('https://auth.site1.local/sso/popup', 'sso', 'width=400,height=500');
+
+    const messageHandler = (event: MessageEvent) => {
+      // In production, restrict origin!
+      if (event.data?.type === 'SSO_TICKET') {
+        window.removeEventListener('message', messageHandler);
+        // We have the ticket, exchange it
+        window.location.href = `/api/auth/callback?ticket=${event.data.ticket}`;
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+  };
+
+  const logout = () => {
+    document.cookie = 'site2_session=; Max-Age=0; path=/';
+    setUser(null);
+  };
 
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+      <h1>Welcome to Site2 (Cross-Domain)</h1>
+      <p>This is a completely different domain.</p>
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+      {user ? (
+        <div style={{ padding: '20px', border: '1px solid purple', marginTop: '20px', borderRadius: '8px' }}>
+          <h2>Logged in as {user.name} on Site 2!</h2>
+          <p>Email: {user.email}</p>
+          <button onClick={logout} style={{ padding: '10px', marginTop: '10px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>Logout of Site 2</button>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
+      ) : (
+        <div style={{ marginTop: '20px', padding: '20px', border: '1px dashed #999', borderRadius: '8px' }}>
+          <p>No active session found on Site 2.</p>
+          <button onClick={recoverSession} style={{ padding: '10px', background: 'purple', color: 'white', cursor: 'pointer', border: 'none', borderRadius: '4px' }}>
+            Recover Session Silently
+          </button>
+        </div>
+      )}
     </div>
   );
 }
