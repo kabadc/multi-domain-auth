@@ -13,7 +13,10 @@ export async function GET(req: Request) {
   const res = await fetch('http://localhost:3000/api/auth/exchange', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ticket }),
+    body: JSON.stringify({ 
+      ticket,
+      clientSecret: process.env.AUTH_CLIENT_SECRET || 'super_secret_site2_key'
+    }),
   });
 
   if (!res.ok) {
@@ -29,7 +32,7 @@ export async function GET(req: Request) {
     httpOnly: false, 
     secure: true,
     sameSite: 'lax',
-    maxAge: 15,
+    maxAge: 15 * 60,
   });
 
   // Set local site2 refresh cookie (7 DAYS, HttpOnly so JS cannot steal it)

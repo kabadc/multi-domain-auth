@@ -13,7 +13,10 @@ export async function POST() {
   const res = await fetch('http://localhost:3000/api/auth/refresh', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
+    body: JSON.stringify({ 
+      refreshToken,
+      clientSecret: process.env.AUTH_CLIENT_SECRET || 'super_secret_site2_key'
+    }),
   });
 
   if (!res.ok) {
@@ -28,7 +31,7 @@ export async function POST() {
 
   // Success! The Auth Provider gave us a new 15-second Access Token...
   cookieStore.set('site2_session', JSON.stringify(data.user), {
-    path: '/', httpOnly: false, secure: true, sameSite: 'lax', maxAge: 15,
+    path: '/', httpOnly: false, secure: true, sameSite: 'lax', maxAge: 15 * 60,
   });
   
   // ...and a brand new Rotated Refresh Token!

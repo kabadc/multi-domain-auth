@@ -5,39 +5,27 @@ import { useState, useEffect } from 'react';
 export default function Site2Page() {
   const [user, setUser] = useState<any>(null);
   
-  // PoC: Polling every 5 seconds to watch the 15-second token expire and auto-renew!
   useEffect(() => {
-    let isChecking = false;
-
     const checkCookieAndRenew = async () => {
-      if (isChecking) return;
-      isChecking = true;
-
       const match = document.cookie.match(/(^| )site2_session=([^;]+)/);
       if (match) {
         try {
           setUser(JSON.parse(decodeURIComponent(match[2])));
         } catch(e) {}
       } else {
-        // Access token is missing or expired! Attempt silent renewal via OUR backend.
-        // Because this fetch is to site2.local/api/auth/refresh, the browser WILL send 
-        // the HttpOnly site2_refresh cookie perfectly!
+        // Access token is missing or expired! Attempt silent renewal on page load
         const res = await fetch('/api/auth/refresh', { method: 'POST' });
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
-          console.log("Silently renewed session using Refresh Token!");
+          console.log("Silently renewed session using Refresh Token on page load!");
         } else {
-          // Both access and refresh tokens are dead. User is fully logged out.
           setUser(null);
         }
       }
-      isChecking = false;
     };
     
     checkCookieAndRenew();
-    const interval = setInterval(checkCookieAndRenew, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const recoverSession = () => {

@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { validateAndRotateRefreshToken, getUserById } from '@repo/auth-core';
 
 export async function POST(req: Request) {
-  const { refreshToken } = await req.json();
+  const { refreshToken, clientSecret } = await req.json();
+  
+  if (clientSecret !== (process.env.EXPECTED_CLIENT_SECRET || 'super_secret_site2_key')) {
+    return NextResponse.json({ error: 'Unauthorized client - Invalid Secret' }, { status: 401 });
+  }
+
   if (!refreshToken) {
     return NextResponse.json({ error: 'Missing token' }, { status: 400 });
   }
