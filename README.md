@@ -11,6 +11,7 @@ Included Applications:
 - **`apps/site1`** (`site1.local:3001`): A public-facing site that shares the root domain `.site1.local`.
 - **`apps/account`** (`account.site1.local:3002`): A protected portal that relies on the `.site1.local` cookie.
 - **`apps/site2`** (`site2.local:3003`): A public-facing site on a completely separate domain, demonstrating cross-domain session recovery via SSO tickets and silent popup handshakes.
+- **`apps/site3`** (`site2.local:3003`): A public-facing site on a completely separate domain, demonstrating cross-domain session recovery via SSO tickets and silent popup handshakes and a redirect on logout to destroy the session globally.
 
 ## Running the PoC
 
